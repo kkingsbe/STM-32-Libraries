@@ -13,7 +13,7 @@ The BMP581 Library provides an interface to read temperature and pressure data f
 
 ## Quickstart
 ```
-BMP_Init_Default_Addr(&hi2c1); //Intiialize the sensor on the default address
+BMP_Init_Default_Addr(&hi2c1); //Intiialize the sensor on the default address. hi2c1 is an i2c bus configured through the IDE
 enum BMP_Power_Mode bmp_mode = BMP_Get_Mode(); //Get the power mode of the sensor to ensure it started up correctly
 
 //Initialize variables to store the reference temperature and pressure
