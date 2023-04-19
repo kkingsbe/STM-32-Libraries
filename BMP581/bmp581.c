@@ -24,11 +24,11 @@ void BMP_Init(I2C_HandleTypeDef* i2c_config, uint16_t address)
 	//Enter sleep mode
 	BMP_Switch_Power_Mode(SLEEP);
 
+	//Enter continous mode
+	BMP_Switch_Power_Mode(CONTINOUS);
+
 	//Configure FIFO
 	BMP_Configure_FIFO();
-
-	//Enter normal mode
-	BMP_Switch_Power_Mode(NORMAL);
 }
 
 void BMP_Configure_FIFO()
@@ -57,6 +57,10 @@ void BMP_Switch_Power_Mode(enum BMP_Power_Mode new_mode)
 	if(new_mode == NORMAL)
 	{
 		mode_code = 0x1;
+	}
+	if(new_mode == CONTINOUS)
+	{
+		mode_code = 0x3;
 	}
 
 	odr_config[0] |= mode_code; // Set the lower 2 bits to the desired value
@@ -107,15 +111,25 @@ uint8_t BMP_Get_Device_Status()
 	}
 }
 
-void BMP_Read_Data(uint16_t* temp_c, uint16_t* pressure)
+void BMP_Read_Data(uint32_t* temp_c, uint32_t* pressure)
 {
 	uint8_t data[6];
 	BMP_Reg_Read(BMP_FIFO_DATA, 6, data);
 	uint32_t temp_conc = (uint32_t)(data[2] << 16 | data[1] << 8 | data[0]);
-	*temp_c = temp_conc >> 16;
+	uint16_t t_temp = temp_conc >> 16;
+
+	while(t_temp == 0x7F)
+	{
+		HAL_Delay(20);
+		BMP_Reg_Read(BMP_FIFO_DATA, 6, data);
+		temp_conc = (uint32_t)(data[2] << 16 | data[1] << 8 | data[0]);
+		t_temp = temp_conc >> 16;
+	}
+
+	*temp_c = t_temp;
 
 	uint32_t pressure_conc = (uint32_t)(data[5] << 16 | data[4] << 8 | data[3]);
-	*pressure = pressure_conc >> 16;
+	*pressure = pressure_conc >> 6;
 }
 
 uint16_t BMP_Read_Temperature()
@@ -123,6 +137,7 @@ uint16_t BMP_Read_Temperature()
 	uint8_t temp_arr[6];
 	BMP_Reg_Read(BMP_FIFO_DATA, 6, temp_arr);
 	uint32_t temp_conc = (uint32_t)(temp_arr[2] << 16 | temp_arr[1] << 8 | temp_arr[0]);
+
 	return temp_conc >> 16;
 }
 
@@ -157,7 +172,20 @@ enum BMP_Power_Mode BMP_Get_Mode()
 	}
 }
 
+//Reference pressure is pressure in Pa at surface
+double BMP_Get_RelAlt_Ft(uint32_t reference_pressure)
+{
+	uint32_t p = 0;
+	uint32_t t = 0;
+	BMP_Read_Data(&t, &p);
 
+	//Hypsometric formula: https://keisan.casio.com/exec/system/1224585971
+	double frac_p = (double)reference_pressure / p;
+	double exponential = pow(frac_p, (double)1.0/5.257);
+	double fraction_top = (exponential - 1) * (t + 273.15);
+	double alt_m = fraction_top / 0.0065;
+	return alt_m * 3.281; //Convert to ft and return
+}
 
 
 

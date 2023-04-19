@@ -6,6 +6,7 @@
  */
 
 #include "stm32f1xx_hal.h"
+#include "math.h"
 //#include <stdint.h>
 
 #ifndef INC_BMP581_H_
@@ -35,7 +36,8 @@ enum BMP_Measurement_Mode {
 enum BMP_Power_Mode {
 	STANDBY,
 	SLEEP,
-	NORMAL
+	NORMAL,
+	CONTINOUS
 };
 
 extern struct BMP_Config bmpConfig;
@@ -47,10 +49,11 @@ void BMP_Reg_Read(uint16_t reg_addr, uint16_t reg_size, uint8_t* data_output);
 void BMP_Switch_Power_Mode(enum BMP_Power_Mode new_mode);
 enum BMP_Power_Mode BMP_Get_Mode();
 void BMP_Configure_FIFO();
-void BMP_Read_Data(uint16_t* temp_c, uint16_t* pressure);
+void BMP_Read_Data(uint32_t* temp_c, uint32_t* pressure);
 
 uint8_t BMP_Get_Device_Status();
 uint16_t BMP_Read_Temperature();
 uint16_t BMP_Read_Pressure();
+double BMP_Get_RelAlt_Ft(uint32_t reference_pressure);
 
 #endif /* INC_BMP581_H_ */
