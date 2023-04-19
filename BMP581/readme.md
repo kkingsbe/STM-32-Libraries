@@ -11,6 +11,26 @@ The BMP581 Library provides an interface to read temperature and pressure data f
 4. Initialize the BMP581 sensor using the provided functions.
 5. Use the library functions to read temperature and pressure data from the sensor.
 
+## Quickstart
+```
+BMP_Init_Default_Addr(&hi2c1); //Intiialize the sensor on the default address
+enum BMP_Power_Mode bmp_mode = BMP_Get_Mode(); //Get the power mode of the sensor to ensure it started up correctly
+
+//Initialize variables to store the reference temperature and pressure
+uint32_t temp_c = 0; 
+uint32_t ref_pressure = 0;
+
+//Read the reference values for temp and pressure (this is how the sensor is callirbated)
+BMP_Read_Data(&temp_c, &ref_pressure);
+double alt = 0.0; //Initialize the variable to store the altitude in ft
+
+//Main control loop
+while (1)
+{
+  alt = BMP_Get_RelAlt_Ft(ref_pressure); //Get altitude in ft
+}
+```
+
 ## Usage
 ### Initialization
 Before using the BMP581 library, you must first initialize the sensor. There are two initialization functions available:
