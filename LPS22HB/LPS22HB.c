@@ -33,7 +33,7 @@ uint8_t LPS_Init(I2C_HandleTypeDef* i2c_config, uint16_t address)
 	LPS_Configure_Fifo(BYPASS);
 
 	//Enable low pass filter
-	LPS_Configure_LPFP(ODR_9);
+	//LPS_Configure_LPFP(ODR_9);
 
 	return 1;
 }
@@ -100,8 +100,6 @@ void LPS_Configure_Fifo(enum LPS_FIFO desiredFifo)
 double LPS_Get_Pressure()
 {
 	double SCALING_FACTOR = 4096.0;
-	uint8_t sink[1];
-	LPS_Reg_Read(LPFP_RES, 1, sink); //Reset low pass filter
 
 	uint8_t press_out_h[1];
 	uint8_t press_out_l[1];
@@ -133,21 +131,21 @@ double LPS_Get_Temp()
 
 double LPS_Get_TempF()
 {
-	uint16_t tempC = LPS_Get_Temp();
+	double tempC = LPS_Get_Temp();
 	return (tempC * (9/5.0)) + 32;
 }
 
 double LPS_Get_PressureATM()
 {
-	uint16_t pressHPA = LPS_Get_Pressure();
+	double pressHPA = LPS_Get_Pressure();
 	return pressHPA * 0.0009869233;
 }
 
 //Reference pressure is pressure in Pa at surface
 double LPS_Get_RelAlt_Ft(uint32_t reference_pressure)
 {
-	uint16_t p = LPS_Get_Pressure();
-	uint16_t t = LPS_Get_Temp();
+	double p = LPS_Get_Pressure();
+	double t = LPS_Get_Temp();
 
 	//Hypsometric formula: https://keisan.casio.com/exec/system/1224585971
 	double frac_p = (double)reference_pressure / p;
